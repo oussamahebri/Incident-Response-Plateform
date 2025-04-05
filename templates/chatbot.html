@@ -1,0 +1,64 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversational Chatbot</title>
+    <link href="{% static 'chatbot.css' %}" rel="stylesheet" />
+    
+</head>
+<body>
+    <div id="chat-container">
+        <h2>Let's Chat!</h2>
+        <div class="chat-box" id="chat-box"></div>
+        <div>
+            <input type="text" id="query" placeholder="Type your question..." />
+            <button onclick="sendQuery()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const chatBox = document.getElementById("chat-box");
+
+        function addMessage(content, isUser) {
+            const messageDiv = document.createElement("div");
+            messageDiv.className = "message " + (isUser ? "user-message" : "bot-message");
+            messageDiv.innerText = content;
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight; // Scroll to the bottom
+        }
+
+        function sendQuery() {
+            const queryInput = document.getElementById("query");
+            const query = queryInput.value.trim();
+            if (!query) {
+                alert("Please enter a message.");
+                return;
+            }
+
+            // Display user message
+            addMessage(query, true);
+
+            // Fetch bot response
+            fetch(`/chatbot?query=${encodeURIComponent(query)}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Failed to fetch response.");
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const botResponse = data.response || "Hmm, I don't have an answer for that.";
+                    addMessage(botResponse, false);
+                })
+                .catch(error => {
+                    addMessage("An error occurred: " + error.message, false);
+                });
+
+            queryInput.value = ""; // Clear input
+        }
+    </script>
+</body>
+</html>
